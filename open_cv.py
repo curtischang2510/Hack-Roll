@@ -6,7 +6,6 @@ import numpy as np
 
 class OpenCV:
     def __init__(self, callback=None):
-
         self.cap = cv2.VideoCapture(1)  # Use 0 for default camera, 1 for external camera
         
         if not self.cap.isOpened():
@@ -19,8 +18,9 @@ class OpenCV:
         
         self.face_detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-        self.callback = callback  # Optional callback for GUI integration
-        
+        self.callback = callback  # Callback to pass frames to GUI
+        self.running = True  # Control flag for stopping the thread
+
         self.model_points = np.array([
             (0.0, 0.0, 0.0),             # Nose tip
             (0.0, -330.0, -65.0),        # Chin
@@ -35,21 +35,15 @@ class OpenCV:
         cv2.destroyAllWindows()
 
     def process_frame(self):
-        """
-        Process a single frame to determine if the user is looking at the screen.
-
-        :return: Tuple (frame, user_is_looking), where:
-                 - frame: The processed frame with overlays
-                 - user_is_looking: Boolean indicating whether the user is looking at the screen
-        """
+        """Process a single frame and pass it to the callback."""
         if not self.cap.isOpened():
             print("Cannot open camera")
-            return None, False
+            return None
 
         ret, frame = self.cap.read()
         if not ret:
-            print("Can't receive frame. Exiting ...")
-            return None, False
+            print("Can't receive frame.")
+            return None
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = self.face_detector(gray)
@@ -63,70 +57,50 @@ class OpenCV:
             head_pose_check = self.is_user_looking_at_screen(frame, landmarks)
             eye_tracking_check = self.eye_tracking(gray, frame, landmarks)
 
-               # Draw facial landmarks
+            # Draw facial landmarks
             for i in range(68):
                 x = landmarks.part(i).x
                 y = landmarks.part(i).y
                 cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
 
-            # Draw bounding box around the face
-            cv2.rectangle(frame,
-                        (face.left(), face.top()),
-                        (face.right(), face.bottom()),
-                        (255, 0, 0), 2)
-
-            # Draw points around the eyes
-            left_eye_points = [(landmarks.part(i).x, landmarks.part(i).y) for i in range(36, 42)]
-            right_eye_points = [(landmarks.part(i).x, landmarks.part(i).y) for i in range(42, 48)]
-
-            # Draw left eye
-            for point in left_eye_points:
-                cv2.circle(frame, point, 2, (255, 0, 0), -1)
-            cv2.polylines(frame, [np.array(left_eye_points, np.int32)], isClosed=True, color=(255, 255, 0), thickness=1)
-
-            # Draw right eye
-            for point in right_eye_points:
-                cv2.circle(frame, point, 2, (255, 0, 0), -1)
-            cv2.polylines(frame, [np.array(right_eye_points, np.int32)], isClosed=True, color=(255, 255, 0), thickness=1)
-
+            # Draw bounding box
+            cv2.rectangle(
+                frame, 
+                (face.left(), face.top()), 
+                (face.right(), face.bottom()), 
+                (255, 0, 0), 2
+            )
 
             # Combine both checks
             user_is_looking = head_pose_check and eye_tracking_check
-            print(f"Head pose: {head_pose_check}, Eye tracking: {eye_tracking_check}, \nUser is looking: {user_is_looking}")
+            
+            print(f"Head pose: {head_pose_check}, Eye tracking: {eye_tracking_check} \n User is looking: {user_is_looking}")
 
             if not user_is_looking:
-                # Add a red overlay if the user is not looking at the screen
+                # Add a red overlay if the user is not looking
                 red_overlay = np.full(frame.shape, (0, 0, 255), dtype=np.uint8)
                 cv2.addWeighted(red_overlay, 0.5, frame, 0.5, 0, frame)
 
         if len(faces) == 0:
-            # If no faces are detected, assume user is not looking
+            # Add red overlay if no faces are detected
             red_overlay = np.full(frame.shape, (0, 0, 255), dtype=np.uint8)
             cv2.addWeighted(red_overlay, 0.5, frame, 0.5, 0, frame)
             user_is_looking = False
 
-        # Trigger callback if provided
+        # Trigger callback to pass the processed frame to the GUI
         if self.callback:
-            self.callback(user_is_looking)
+            self.callback(user_is_looking, frame)
 
-        return frame, user_is_looking
+        return frame
 
     def run(self):
-        """
-        Continuously process frames until 'q' is pressed. 
-        Useful for standalone testing.
-        """
-        while True:
-            frame, user_is_looking = self.process_frame()
+        """Continuously process frames."""
+        while self.running:
+            self.process_frame()
 
-            if frame is not None:
-                cv2.imshow('Webcam', frame)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        self.cap.release()
-        cv2.destroyAllWindows()
+    def stop(self):
+        """Stop capturing frames."""
+        self.running = False
 
     def is_user_looking_at_screen(self, frame, landmarks):
         size = frame.shape

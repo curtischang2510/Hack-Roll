@@ -1,16 +1,25 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
 from gui.widgets.timer import TimerWidget
 
+
 class MainWindow(tk.Tk):
-    def __init__(self):
+    def __init__(self, opencv):
         super().__init__()
         self.title("focus app!!")
         self.geometry("600x400")
+
+        # Values from OpenCV
+        self.opencv = opencv  # Store the OpenCV instance
+        self.latest_frame = None  # To store the latest frame
+        self.user_looking = False  # To store the user's looking status
+
+        self.face_tab_video_label = None  # To store the label in face_tab
 
         self.theme_manager = ThemeManager()
 
@@ -20,7 +29,6 @@ class MainWindow(tk.Tk):
         self.original_img = None
         self.img = None
 
-        # Will store info about each widget, including new "anchor_bottom_left" flag
         self.widget_references = []
 
         self.bind("<Configure>", self.resize_window)
@@ -28,7 +36,7 @@ class MainWindow(tk.Tk):
         self.theme_var = tk.StringVar(value="Default")
         self.dropdown = ttk.Combobox(self, textvariable=self.theme_var, state="readonly")
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
-        self.add(self.dropdown, x=10, y=10) 
+        self.add(self.dropdown, x=10, y=10)
 
         self.extra_button = tk.Button(self, text="Extra")
         self.extra_button_var = {"button": self.extra_button, "action": self.extra_button_action}
@@ -38,9 +46,61 @@ class MainWindow(tk.Tk):
 
         self.widgets_created = False
 
-        # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
 
+    def set_latest_frame(self, frame):
+        """Store the latest frame for display."""
+        self.latest_frame = frame
+
+    def set_user_looking(self, user_looking):
+        self.user_looking = user_looking
+
+    def update_video_feed(self):
+        """Update the video feed in the face_tab."""
+        if self.latest_frame is not None:
+            # Convert frame to RGB format for Tkinter
+            frame = cv2.cvtColor(self.latest_frame, cv2.COLOR_BGR2RGB)
+            frame = ImageTk.PhotoImage(image=Image.fromarray(frame))
+            self.face_tab_video_label.configure(image=frame)
+            self.face_tab_video_label.image = frame  # Prevent garbage collection
+        else:
+            # Display placeholder text if no frame is available
+            self.face_tab_video_label.configure(text="Waiting for camera feed...")
+
+        # Schedule the next frame update
+        self.after(33, self.update_video_feed)
+
+    def create_widgets(self):
+        """Create widgets, including the video feed in face_tab."""
+        self.widgets_created = True
+
+        # Create and add the TabWidget
+        self.tab_widget = TabWidget(self)
+        self.add(self.tab_widget, center_x=True, center_y=True)
+
+        # Add tabs to the TabWidget
+        screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
+        face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
+
+        self.tab_widget.add_tab(screen_tab, "Screen")
+        self.tab_widget.add_tab(face_tab, "Face")
+
+        # Add placeholder text to screen_tab
+        screen_label = tk.Label(screen_tab, text="This should show the screen captured")
+        screen_label.pack(expand=True, fill=tk.BOTH)
+
+        # Add a label to face_tab for video feed
+        self.face_tab_video_label = tk.Label(face_tab, text="Waiting for camera feed...")
+        self.face_tab_video_label.pack(expand=True, fill=tk.BOTH)
+
+        # Add the TimerWidget, anchored at the bottom-left
+        self.timer_widget = TimerWidget(self)
+        self.add(self.timer_widget, anchor_bottom_left=True)
+
+        # Start updating the video feed
+        self.update_video_feed()
+
+    # Unchanged methods 
     def center_widgets(self, event=None):
         """Center or reposition widgets on the canvas after size changes."""
         canvas_width = self.canvas.winfo_width()
@@ -117,31 +177,6 @@ class MainWindow(tk.Tk):
 
         if not hasattr(self, "widgets_created"):
             self.create_widgets()
-
-    def create_widgets(self):
-        self.widgets_created = True
-        self.tab_widget = TabWidget(self)
-        self.add(self.tab_widget, center_x=True, center_y=True)
-
-        screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
-        face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
-
-        self.tab_widget.add_tab(screen_tab, "Screen")
-        self.tab_widget.add_tab(face_tab, "Face")
-
-        screen_label = tk.Label(screen_tab, text="This should show the screen captured")
-        screen_label.pack(expand=True, fill=tk.BOTH)
-        face_label = tk.Label(face_tab, text="This should show the face captured")
-        face_label.pack(expand=True, fill=tk.BOTH)
-
-        # ---------------------------------------------------
-        # Create and add the TimerWidget, anchored bottom-left
-        # ---------------------------------------------------
-        self.timer_widget = TimerWidget(self)
-        # Instead of a fixed y=350, just anchor it so it will stay 
-        # at bottom-left regardless of window size
-        self.add(self.timer_widget, anchor_bottom_left=True)
-        # ---------------------------------------------------
 
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
