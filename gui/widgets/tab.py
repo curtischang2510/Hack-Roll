@@ -1,0 +1,15 @@
+import tkinter as tk
+from tkinter import ttk
+
+class TabWidget(ttk.Notebook):
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.pack(expand=1, fill="both")
+        
+        self.tabs = {}
+    
+    def add_tab(self, frame, title):
+        frame.configure(borderwidth=0, relief="flat")
+        self.add(frame, text=title)
+        self.tabs[title] = frame
