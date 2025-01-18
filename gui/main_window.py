@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
+from screenshot import VLM
 from gui.widgets.timer import TimerWidget
 
 class MainWindow(tk.Tk):
@@ -40,6 +41,23 @@ class MainWindow(tk.Tk):
 
         # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
+        self.vlm = VLM()
+
+        self.check_periodically()
+    
+    def check_periodically(self): 
+        print("periodically called")
+        self.perform_check()
+
+        self.after(5000, self.check_periodically)
+
+    def perform_check(self): 
+        if not self.vlm.check_laptop_screen():
+            print("nooooooooo")
+            pass
+        else: 
+            print("yesssss")
+            pass
 
     def center_widgets(self, event=None):
         """Center or reposition widgets on the canvas after size changes."""
