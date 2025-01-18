@@ -63,6 +63,7 @@ class CustomPopup(tk.Toplevel):
             try:
                 img = Image.open(file_path)  
                 self.bg_image = ImageTk.PhotoImage(img)  
+                self.theme_data["image"] = file_path
                 print(f"Selected Image: {file_path}")
             except Exception as e:
                 print(f"Error loading image: {e}")
@@ -102,7 +103,7 @@ class CustomPopup(tk.Toplevel):
         # Ensure valid data for color and image
         self.theme_data["name"] = theme_name
         self.theme_data["color"] = self.theme_data.get("color") or ""  # Default white color
-        self.theme_data["image"] = self.theme_data.get("image") or ""  # Default: No image
+        self.theme_data["image"] = self.theme_data.get("image") or None  # Default: No image
 
         try:
             self.parent.theme_manager.save_custom_theme(theme_name, self.theme_data)
