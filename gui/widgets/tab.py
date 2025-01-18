@@ -11,7 +11,7 @@ class TabWidget(tk.Frame):
         self.active_tab = None
 
         self.tab_buttons_frame = tk.Frame(self)
-        self.tab_buttons_frame.pack(side=tk.TOP, fill=tk.X)
+        self.tab_buttons_frame.pack(side=tk.TOP)
 
     def add_tab(self, frame, title):
         """Add a new tab to the widget."""
