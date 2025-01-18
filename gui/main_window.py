@@ -34,27 +34,50 @@ class MainWindow(tk.Tk):
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
         self.change_theme("Default")
 
-    def add(self, widget, x=0, y=0, center_x=False, center_y=False):
-        """Add a widget to the canvas."""
-        self.widget_references.append({"widget": widget, "x": x, "y": y})
-        
-        if center_x or center_y:
-            canvas_width = self.canvas.winfo_width()
-            canvas_height = self.canvas.winfo_height()
-            widget.update_idletasks()
+        self.widgets_created = False
 
-            widget_width = widget.winfo_reqwidth()
-            widget_height = widget.winfo_reqheight()
+        self.canvas.bind("<Configure>", self.center_widgets)
 
-            print(canvas_width)
-            print(widget_width)
+    def center_widgets(self, event=None):
+        """Center all widgets on the canvas after size changes."""
+
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
+
+        for ref in self.widget_references:
+            widget = ref["widget"]
+            window_id = ref["window_id"]
+            x = ref.get("x", 0)
+            y = ref.get("y", 0)
+            center_x = ref.get("center_x", False)
+            center_y = ref.get("center_y", False)
+
+            if widget == self.tab_widget:
+                tab_width = max(canvas_width - 120, 0)
+                tab_height = max(canvas_height - 120, 0)
+                widget.resize(tab_width, tab_height) 
 
             if center_x:
+                widget.update_idletasks()
+                widget_width = widget.winfo_reqwidth()
                 x = (canvas_width - widget_width) // 2
             if center_y:
+                widget.update_idletasks()
+                widget_height = widget.winfo_reqheight()
                 y = (canvas_height - widget_height) // 2
+            self.canvas.coords(window_id, x, y)
 
-        self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
+    def add(self, widget, x=0, y=0, center_x=False, center_y=False):
+        """Add a widget to the canvas."""
+        window_id = self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
+        self.widget_references.append({
+            "widget": widget,
+            "window_id": window_id,
+            "x": x,
+            "y": y,
+            "center_x": center_x,
+            "center_y": center_y,
+        })
 
     def resize_window(self, event=None):
         """Handle window resize events."""
@@ -72,9 +95,9 @@ class MainWindow(tk.Tk):
 
         if not hasattr(self, "widgets_created"):
             self.create_widgets()
-            self.widgets_created = True
 
     def create_widgets(self):
+        self.widgets_created = True
         self.tab_widget = TabWidget(self)
         self.add(self.tab_widget, center_x=True, center_y=True)
 

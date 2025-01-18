@@ -42,3 +42,8 @@ class TabWidget(tk.Frame):
         new_tab = self.tabs[title]
         new_tab.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.active_tab = title
+
+    def resize(self, width, height):
+        """Resize the TabWidget and its canvas."""
+        self.config(width=width, height=height)
+        self.canvas.config(width=width, height=height)
