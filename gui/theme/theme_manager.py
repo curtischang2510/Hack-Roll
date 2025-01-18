@@ -12,10 +12,12 @@ class ThemeManager:
         self.default_themes = {
             "Default": {
                 "background": os.path.join(assets_dir, "default_bg.jpg"),
+                "audio": [os.path.join(assets_dir, "test_audio.mp3")],
                 "extra_widget": False
             },
             "Ocean": {
                 "background": os.path.join(assets_dir, "ocean_bg.jpg"),
+                "audio": [os.path.join(assets_dir, "test_audio.mp3")],
                 "extra_widget": True,
                 "extra_button_text": "Help"
             }
