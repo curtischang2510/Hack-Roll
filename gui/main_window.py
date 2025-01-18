@@ -32,13 +32,7 @@ class MainWindow(tk.Tk):
         self.extra_button_var = {"button": self.extra_button, "action": self.extra_button_action}
 
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
-        # self.tab_container = tk.Frame(self.canvas)
-        # self.tab_window = self.canvas.create_window(
-        #     0, 0, anchor=tk.NW, window=self.tab_container
-        # )
         self.change_theme("Default")
-
-        # self.create_widgets()
     
     def add(self, widget, x=0, y=0, center_x=False, center_y=False):
         """Add a widget to the canvas."""
@@ -57,73 +51,27 @@ class MainWindow(tk.Tk):
             resized_img = self.original_img.resize((width, height), Image.Resampling.LANCZOS)
             self.img = ImageTk.PhotoImage(resized_img)
 
-            # Clear and redraw canvas
-            self.canvas.delete("all")
             self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img)
 
-            # Re-add all widgets
-            for widget_ref in self.widget_references:
-                widget = widget_ref["widget"]
-                x = widget_ref["x"]
-                y = widget_ref["y"]
-                center_x = widget_ref.get("center_x", False)
-                center_y = widget_ref.get("center_y", False)
-                
-                final_x = x
-                final_y = y
-                
-                if center_x:
-                    final_x = (width - widget.winfo_width()) // 2 + x
-                
-                if center_y:
-                    final_y = (height - widget.winfo_height()) // 2 + y
-                    
-                self.canvas.create_window(final_x, final_y, anchor=tk.NW, window=widget)
+        if not hasattr(self, "widgets_created"):
+            self.create_widgets()
+            self.widgets_created = True
 
     def create_widgets(self):
+        self.tab_widget = TabWidget(self)
 
-        # Create TabWidget inside the container frame
-        tab_widget = TabWidget(self.tab_container)
+        self.add(self.tab_widget, x=0, y=50, center_x=True)
 
-        # Create tabs
-        screen_tab = tk.Frame(tab_widget)
-        face_tab = tk.Frame(tab_widget)
+        screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
+        face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
 
-        # Add tabs to the TabWidget
-        tab_widget.add_tab(screen_tab, "Screen")
-        tab_widget.add_tab(face_tab, "Face")
+        self.tab_widget.add_tab(screen_tab, "Screen")
+        self.tab_widget.add_tab(face_tab, "Face")
 
-        # Pack the TabWidget inside the container frame
-        tab_widget.pack(expand=True, fill=tk.BOTH)
-
-        # Add placeholder labels to the tabs
         screen_label = tk.Label(screen_tab, text="This should show the screen captured")
         screen_label.pack(expand=True, fill=tk.BOTH)
         face_label = tk.Label(face_tab, text="This should show the face captured")
         face_label.pack(expand=True, fill=tk.BOTH)
-
-        # Add the container frame (with the TabWidget) to the canvas
-        # self.tab_window = self.canvas.create_window(
-        #     0, 0, anchor=tk.NW, window=self.tab_container
-        # )
-
-        # self.center_tabs()
-
-    def center_tabs(self):
-        """Center the TabWidget in the canvas."""
-        canvas_width = self.canvas.winfo_width()
-        canvas_height = self.canvas.winfo_height()
-
-        self.tab_container.update_idletasks()  # Ensure correct size calculations
-        tab_width = self.tab_container.winfo_width()
-        tab_height = self.tab_container.winfo_height()
-
-        # Calculate the centered position
-        x = (canvas_width - tab_width) // 2
-        y = (canvas_height - tab_height) // 2
-
-        # Update the position of the container frame
-        self.canvas.coords(self.tab_window, x, y)
 
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
