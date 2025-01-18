@@ -3,7 +3,8 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 from gui.theme.theme_manager import ThemeManager
-from gui.widgets.tab import TabWidget  
+from gui.widgets.tab import TabWidget
+from screenshot import VLM
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -37,6 +38,23 @@ class MainWindow(tk.Tk):
         self.widgets_created = False
 
         self.canvas.bind("<Configure>", self.center_widgets)
+        self.vlm = VLM()
+
+        self.check_periodically()
+    
+    def check_periodically(self): 
+        print("periodically called")
+        self.perform_check()
+
+        self.after(5000, self.check_periodically)
+
+    def perform_check(self): 
+        if not self.vlm.check_laptop_screen():
+            print("nooooooooo")
+            pass
+        else: 
+            print("yesssss")
+            pass
 
     def center_widgets(self, event=None):
         """Center all widgets on the canvas after size changes."""
@@ -111,23 +129,6 @@ class MainWindow(tk.Tk):
         screen_label.pack(expand=True, fill=tk.BOTH)
         face_label = tk.Label(face_tab, text="This should show the face captured")
         face_label.pack(expand=True, fill=tk.BOTH)
-
-
-    # def create_widgets(self):
-    #     self.tab_widget = TabWidget(self)
-
-    #     self.add(self.tab_widget, x=0, y=50, center_x=True)
-
-    #     screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
-    #     face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
-
-    #     self.tab_widget.add_tab(screen_tab, "Screen")
-    #     self.tab_widget.add_tab(face_tab, "Face")
-
-    #     screen_label = tk.Label(screen_tab, text="This should show the screen captured")
-    #     screen_label.pack(expand=True, fill=tk.BOTH)
-    #     face_label = tk.Label(face_tab, text="This should show the face captured")
-    #     face_label.pack(expand=True, fill=tk.BOTH)
 
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
