@@ -33,10 +33,27 @@ class MainWindow(tk.Tk):
 
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
         self.change_theme("Default")
-    
+
     def add(self, widget, x=0, y=0, center_x=False, center_y=False):
         """Add a widget to the canvas."""
         self.widget_references.append({"widget": widget, "x": x, "y": y})
+        
+        if center_x or center_y:
+            canvas_width = self.canvas.winfo_width()
+            canvas_height = self.canvas.winfo_height()
+            widget.update_idletasks()
+
+            widget_width = widget.winfo_reqwidth()
+            widget_height = widget.winfo_reqheight()
+
+            print(canvas_width)
+            print(widget_width)
+
+            if center_x:
+                x = (canvas_width - widget_width) // 2
+            if center_y:
+                y = (canvas_height - widget_height) // 2
+
         self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
 
     def resize_window(self, event=None):
@@ -59,8 +76,7 @@ class MainWindow(tk.Tk):
 
     def create_widgets(self):
         self.tab_widget = TabWidget(self)
-
-        self.add(self.tab_widget, x=0, y=50, center_x=True)
+        self.add(self.tab_widget, center_x=True, center_y=True)
 
         screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
         face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
@@ -72,6 +88,23 @@ class MainWindow(tk.Tk):
         screen_label.pack(expand=True, fill=tk.BOTH)
         face_label = tk.Label(face_tab, text="This should show the face captured")
         face_label.pack(expand=True, fill=tk.BOTH)
+
+
+    # def create_widgets(self):
+    #     self.tab_widget = TabWidget(self)
+
+    #     self.add(self.tab_widget, x=0, y=50, center_x=True)
+
+    #     screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
+    #     face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
+
+    #     self.tab_widget.add_tab(screen_tab, "Screen")
+    #     self.tab_widget.add_tab(face_tab, "Face")
+
+    #     screen_label = tk.Label(screen_tab, text="This should show the screen captured")
+    #     screen_label.pack(expand=True, fill=tk.BOTH)
+    #     face_label = tk.Label(face_tab, text="This should show the face captured")
+    #     face_label.pack(expand=True, fill=tk.BOTH)
 
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
