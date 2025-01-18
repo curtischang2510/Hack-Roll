@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 
-from gui.widgets.dropdown_menu import DropdownMenu
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.custom_frame import CustomFrame
+from gui.widgets.tab import TabWidget  
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -19,13 +19,32 @@ class MainWindow(tk.Tk):
         self.theme_var = tk.StringVar(value="Default")
         self.dropdown = ttk.Combobox(self, textvariable=self.theme_var, state="readonly")
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
-        self.bkgr_frame.add(self.dropdown, 10, 10)
+        self.bkgr_frame.add(self.dropdown, x=10, y=10)
 
         self.extra_button = tk.Button(self, text="Extra")
         self.extra_button_var = {"button": self.extra_button, "action": self.extra_button_action}
 
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
         self.change_theme("Default")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        tab_widget = TabWidget(self.bkgr_frame)
+        self.bkgr_frame.add(tab_widget, x=50, y=50, center_x=True, center_y=True)
+
+        # Frames 
+        screen_tab = tk.Frame(tab_widget)
+        face_tab = tk.Frame(tab_widget)
+
+        tab_widget.add_tab(screen_tab, "Screen")
+        tab_widget.add_tab(face_tab, "Face")
+
+        tab_widget.pack(expand=1, fill="both")
+
+        # Placeholder text, remove later
+        screen_label = tk.Label(screen_tab, text="This should show the screen captured")
+        face_label = tk.Label(face_tab, text="This should show the face captured")
 
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()

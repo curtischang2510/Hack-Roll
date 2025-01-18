@@ -38,7 +38,7 @@ class CustomFrame(tk.Frame):
             for widget_ref in self.widget_references:
                 self.canvas.create_window(widget_ref["x"], widget_ref["y"], anchor=tk.NW, window=widget_ref["widget"])
 
-    def add(self, widget, x, y):
+    def add(self, widget, x=0, y=0, center_x=False, center_y=False):
         """Add a widget to the canvas."""
         self.widget_references.append({"widget": widget, "x": x, "y": y})
         self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
