@@ -4,6 +4,8 @@ from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk
 import pysound
 
+from gui.widgets.customise_popup import CustomPopup
+
 class ThemeManager:
     def __init__(self, custom_themes_file="custom_themes.json"):
         current_dir = os.path.dirname(__file__)
@@ -11,11 +13,13 @@ class ThemeManager:
         assets_dir = os.path.normpath(assets_dir)
         self.default_themes = {
             "Default": {
-                "background": os.path.join(assets_dir, "default_bg.jpg"),
+                "color": "#000000",
+                "image": os.path.join(assets_dir, "default_bg.jpg"),
                 "extra_widget": False
             },
             "Ocean": {
-                "background": os.path.join(assets_dir, "ocean_bg.jpg"),
+                "color": "#000000",
+                "image": os.path.join(assets_dir, "ocean_bg.jpg"),
                 "extra_widget": True,
                 "extra_button_text": "Help"
             }
@@ -30,6 +34,13 @@ class ThemeManager:
                 return json.load(file)
         return {}
 
+    def save_custom_theme(self, theme_name, theme_data):
+        if not theme_name:
+            raise ValueError("Theme name cannot be empty.")
+        self.custom_themes[theme_name] = theme_data
+        self.save_custom_themes()  
+        self.themes[theme_name] = theme_data  # Comes from popup
+
     def save_custom_themes(self):
         with open(self.custom_themes_file, "w") as file:
             json.dump(self.custom_themes, file)
@@ -40,24 +51,6 @@ class ThemeManager:
     def get_theme_config(self, theme_name):
         return self.themes.get(theme_name)
 
-    def create_custom_theme(self):
-        bg_path = filedialog.askopenfilename(
-            title="Select Background Image",
-            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")]
-        )
-        if not bg_path:
-            return
-
-        theme_name = simpledialog.askstring("Theme Name", "Enter a name for your custom theme:")
-        if not theme_name:
-            return
-
-        self.custom_themes[theme_name] = {
-            "background": bg_path,
-            "extra_widget": False
-        }
-        self.save_custom_themes()
-        self.themes = {**self.default_themes, **self.custom_themes}
-
-        messagebox.showinfo("Success", f"Custom theme '{theme_name}' created successfully!")
-        return theme_name
+    def create_custom_theme(self, parent):
+        popup = CustomPopup(parent, self.themes)
+        parent.wait_window(popup)  

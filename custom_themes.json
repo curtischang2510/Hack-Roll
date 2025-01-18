@@ -1,0 +1,20 @@
+{
+    "test": {
+        "name": "test",
+        "color": "#72ff33",
+        "image": "",
+        "audio": [null, null, null, null]
+    },
+    "test2": {
+        "name": "test2",
+        "color": "#FFFFFF",
+        "image": "",
+        "audio": [null, null, null, null]
+    },
+    "test3": {
+        "name": "test3",
+        "color": "#00ff58",
+        "image": "",
+        "audio": [null, null, null, null]
+    }
+}
