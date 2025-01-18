@@ -77,15 +77,3 @@ class VLM:
         except Exception as e:
             print(f"Error in query_vlm: {e}")
             return "Error occurred during processing."
-
-# def main():
-#     vlm = VLM()
-#     try:
-#         while True:
-#             vlm.check_laptop_screen()
-#             time.sleep(5)  # Wait for 5 seconds
-#     except KeyboardInterrupt:
-#         print("Stopped by user.")
-
-# if __name__ == "__main__":
-#     main()

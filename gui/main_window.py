@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
 from screenshot import VLM
+from gui.widgets.timer import TimerWidget
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -20,6 +21,7 @@ class MainWindow(tk.Tk):
         self.original_img = None
         self.img = None
 
+        # Will store info about each widget, including new "anchor_bottom_left" flag
         self.widget_references = []
 
         self.bind("<Configure>", self.resize_window)
@@ -27,7 +29,7 @@ class MainWindow(tk.Tk):
         self.theme_var = tk.StringVar(value="Default")
         self.dropdown = ttk.Combobox(self, textvariable=self.theme_var, state="readonly")
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
-        self.add(self.dropdown, x=10, y=10)
+        self.add(self.dropdown, x=10, y=10) 
 
         self.extra_button = tk.Button(self, text="Extra")
         self.extra_button_var = {"button": self.extra_button, "action": self.extra_button_action}
@@ -37,6 +39,7 @@ class MainWindow(tk.Tk):
 
         self.widgets_created = False
 
+        # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
         self.vlm = VLM()
 
@@ -57,8 +60,7 @@ class MainWindow(tk.Tk):
             pass
 
     def center_widgets(self, event=None):
-        """Center all widgets on the canvas after size changes."""
-
+        """Center or reposition widgets on the canvas after size changes."""
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
 
@@ -69,24 +71,44 @@ class MainWindow(tk.Tk):
             y = ref.get("y", 0)
             center_x = ref.get("center_x", False)
             center_y = ref.get("center_y", False)
+            anchor_bottom_left = ref.get("anchor_bottom_left", False)  # new flag
 
+            # If this widget is our TabWidget, resize it to fill space
             if widget == self.tab_widget:
                 tab_width = max(canvas_width - 120, 0)
                 tab_height = max(canvas_height - 120, 0)
-                widget.resize(tab_width, tab_height) 
+                widget.resize(tab_width, tab_height)
 
+            # Handle normal center_x/center_y
             if center_x:
                 widget.update_idletasks()
                 widget_width = widget.winfo_reqwidth()
                 x = (canvas_width - widget_width) // 2
+
             if center_y:
                 widget.update_idletasks()
                 widget_height = widget.winfo_reqheight()
                 y = (canvas_height - widget_height) // 2
+
+            # NEW: if anchor_bottom_left is True, stick the widget to bottom-left
+            if anchor_bottom_left:
+                widget.update_idletasks()
+                widget_width = widget.winfo_reqwidth()
+                widget_height = widget.winfo_reqheight()
+                # For a small margin from edges, offset by 10px
+                x = 10
+                y = canvas_height - widget_height - 10
+
+            # Apply updated (x, y) to the widget's position on the canvas
             self.canvas.coords(window_id, x, y)
 
-    def add(self, widget, x=0, y=0, center_x=False, center_y=False):
-        """Add a widget to the canvas."""
+    def add(self, widget, x=0, y=0, center_x=False, center_y=False, anchor_bottom_left=False):
+        """
+        Add a widget to the canvas at a given x,y or with certain anchors.
+        
+        center_x/center_y -> center in canvas 
+        anchor_bottom_left -> keep pinned in bottom-left on resize
+        """
         window_id = self.canvas.create_window(x, y, anchor=tk.NW, window=widget)
         self.widget_references.append({
             "widget": widget,
@@ -95,6 +117,7 @@ class MainWindow(tk.Tk):
             "y": y,
             "center_x": center_x,
             "center_y": center_y,
+            "anchor_bottom_left": anchor_bottom_left
         })
 
     def resize_window(self, event=None):
@@ -108,7 +131,6 @@ class MainWindow(tk.Tk):
         if width > 0 and height > 0:
             resized_img = self.original_img.resize((width, height), Image.Resampling.LANCZOS)
             self.img = ImageTk.PhotoImage(resized_img)
-
             self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img)
 
         if not hasattr(self, "widgets_created"):
@@ -130,6 +152,15 @@ class MainWindow(tk.Tk):
         face_label = tk.Label(face_tab, text="This should show the face captured")
         face_label.pack(expand=True, fill=tk.BOTH)
 
+        # ---------------------------------------------------
+        # Create and add the TimerWidget, anchored bottom-left
+        # ---------------------------------------------------
+        self.timer_widget = TimerWidget(self)
+        # Instead of a fixed y=350, just anchor it so it will stay 
+        # at bottom-left regardless of window size
+        self.add(self.timer_widget, anchor_bottom_left=True)
+        # ---------------------------------------------------
+
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
         if selected_theme == "Add Custom Theme":
@@ -148,6 +179,7 @@ class MainWindow(tk.Tk):
         theme_config = self.theme_manager.get_theme_config(theme_name)
         if not theme_config:
             return
+
         bg_image_path = theme_config["background"]
         self.original_img = Image.open(bg_image_path)
         self.resize_window()
