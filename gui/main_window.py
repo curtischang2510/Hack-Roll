@@ -7,6 +7,10 @@ from gui.widgets.tab import TabWidget
 from screenshot import VLM
 from gui.widgets.timer import TimerWidget
 
+import random
+from playsound import playsound
+from pygame import mixer
+
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -39,6 +43,12 @@ class MainWindow(tk.Tk):
 
         self.widgets_created = False
 
+        try:
+            mixer.init()
+            print("Mixer initialized successfully.")
+        except Exception as e:
+            print(f"Error initializing mixer: {e}")
+
         # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
         self.vlm = VLM()
@@ -54,10 +64,24 @@ class MainWindow(tk.Tk):
     def perform_check(self): 
         if not self.vlm.check_laptop_screen():
             print("nooooooooo")
-            pass
+            theme_name = self.theme_var.get()
+            theme_config = self.theme_manager.get_theme_config(theme_name)
+            audio_files = theme_config.get("audio", [])
+            
+            if audio_files:
+                random_audio = random.choice(audio_files)
+                self.play_audio(random_audio)
         else: 
             print("yesssss")
             pass
+
+    def play_audio(self, audio_path):
+            """Plays the given audio file using pygame."""
+            try:
+                mixer.music.load(audio_path)
+                mixer.music.play()
+            except Exception as e:
+                print(f"Error playing audio: {e}")
 
     def center_widgets(self, event=None):
         """Center or reposition widgets on the canvas after size changes."""
@@ -75,8 +99,8 @@ class MainWindow(tk.Tk):
 
             # If this widget is our TabWidget, resize it to fill space
             if widget == self.tab_widget:
-                tab_width = max(canvas_width - 120, 0)
-                tab_height = max(canvas_height - 120, 0)
+                tab_width = max(canvas_width - 130, 0)
+                tab_height = max(canvas_height - 130, 0)
                 widget.resize(tab_width, tab_height)
 
             # Handle normal center_x/center_y
