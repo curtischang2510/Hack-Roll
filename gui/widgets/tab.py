@@ -17,4 +17,4 @@ class TabWidget(ttk.Notebook):
 
     def on_tab_change(self, event):
         selected_tab = event.widget.tab(event.widget.select(), "text")
-        print(f"Switched to tab: {selected_tab}")  # For debugging
+        print(f"Switched to tab: {selected_tab}")  # debug
