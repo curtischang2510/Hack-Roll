@@ -1,8 +1,11 @@
+from numpy import full
 import requests
 import pyautogui
 from datetime import datetime
 import os
 import time
+
+import screenshot
 
 SERVER_URL = "http://172.20.10.14:5000/process-image"  # Update with your server's IP and port
 
@@ -28,13 +31,27 @@ class Screenchecker:
         with open(file_path, 'rb') as f:
             files = {'image': (os.path.basename(file_path), f, 'image/png')}
             try:
-                response = requests.post(SERVER_URL, files=files)
+                response = requests.post(SERVER_URL, files=files, timeout=5)
                 if response.status_code == 200:
-                    print(f"[DEBUG] Server response: {response.json()}")
+                    full_response = response.json().get('response', '')
+                    if 'Assistant:' in full_response: 
+                        assistant_response = full_response.split("Assistant:")[1].strip()
+                        print(f"[DEBUG] assistant response: {assistant_response}")
+                        return assistant_response
                 else:
                     print(f"[ERROR] Server returned status {response.status_code}: {response.text}")
+            except requests.exceptions.ConnectionError:
+                print("[ERROR] Server is unavailable. Dropping the screenshot.")
             except Exception as e:
                 print(f"[ERROR] Failed to send image: {e}")
+
+    def isScreenOnWork(self): 
+        screenshot_path = self.take_screenshot()
+        assistant_response = self.send_screenshot(screenshot_path)
+
+        return "yes" in assistant_response.lower() 
+
+
 
     def run(self):
         # Continuously take screenshots and send them to the server every 10 seconds
