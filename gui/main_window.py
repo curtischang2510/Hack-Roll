@@ -71,13 +71,23 @@ class MainWindow(tk.Tk):
     def perform_check(self): 
         if not self.screen_checker.isScreenOnWork() or not self.user_looking:
             print("Screen on leisure")
+            
             theme_name = self.theme_var.get()
             theme_config = self.theme_manager.get_theme_config(theme_name)
             audio_files = theme_config.get("audio", [])
-            
-            if audio_files:
-                random_audio = random.choice(audio_files)
+            print("Original audio files:", audio_files)
+
+            # Filter out None values
+            valid_audio_files = [audio for audio in audio_files if audio is not None]
+            print("Valid audio files:", valid_audio_files)
+
+            if valid_audio_files:
+                # Randomly select and play an audio file
+                random_audio = random.choice(valid_audio_files)
+                print("Playing audio:", random_audio)
                 self.play_audio(random_audio)
+            else:
+                print("No valid audio files available.")
         else: 
             print("screen on work")
             pass
