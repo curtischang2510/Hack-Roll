@@ -10,21 +10,32 @@ class ThemeManager:
         current_dir = os.path.dirname(__file__)
         assets_dir = os.path.join(current_dir, "..", "assets")
         assets_dir = os.path.normpath(assets_dir)
+
         self.default_themes = {
             "Default": {
                 "color": "#000000",
-                "image": os.path.join(assets_dir, "default_bg.jpg"),
-                "audio": [os.path.join(assets_dir, "test_audio.mp3")],
+                "image": os.path.join(assets_dir, "meme.jpg"),
+                "audio": [os.path.join(assets_dir, "scream.mp3"), 
+                        os.path.join(assets_dir, "amongus.mp3")],
                 "extra_widget": False
             },
-            "Ocean": {
+            "Capybara": {
                 "color": "#000000",
-                "image": os.path.join(assets_dir, "ocean_bg.jpg"),
-                "audio": [os.path.join(assets_dir, "test_audio.mp3")],
-                "extra_widget": True,
-                "extra_button_text": "Help"
+                "image": os.path.join(assets_dir, "capybara.jpg"),
+                "audio": [os.path.join(assets_dir, "capybara.mp3")],
+                "extra_widget": False,
+                # "extra_button_text": "Help"
+            },
+            "Parent": {
+                "color": "#000000",
+                "image": os.path.join(assets_dir, "steven-he-cropped.jpg"),
+                "audio": [os.path.join(assets_dir, "failure.mp3"), 
+                        os.path.join(assets_dir, "emotional-damage.mp3"), 
+                        os.path.join(assets_dir, "do-ur-hmwk.mp3")],
+                "extra_widget": False
             }
         }
+
         self.custom_themes_file = custom_themes_file
         self.custom_themes = self.load_custom_themes()
         self.themes = {**self.default_themes, **self.custom_themes}
