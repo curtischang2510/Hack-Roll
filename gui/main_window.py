@@ -58,13 +58,13 @@ class MainWindow(tk.Tk):
         except Exception as e:
             print(f"Error initializing mixer: {e}")
         
-        #self.vlm = VLM()
+        self.vlm = VLM()
 
         self.check_periodically()
     
     def check_periodically(self): 
         print("periodically called")
-        #self.perform_check()
+        self.perform_check()
 
         self.after(5000, self.check_periodically)
 
