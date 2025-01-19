@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-from screenshot import VLM
+# from screenshot import VLM
 from gui.widgets.timer import TimerWidget
 
 import random
@@ -50,7 +50,7 @@ class MainWindow(tk.Tk):
 
         # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
-        self.vlm = VLM()
+        # self.vlm = VLM()
 
         self.check_periodically()
     
@@ -61,18 +61,29 @@ class MainWindow(tk.Tk):
         self.after(5000, self.check_periodically)
 
     def perform_check(self): 
-        if not self.vlm.check_laptop_screen():
-            print("nooooooooo")
-            theme_name = self.theme_var.get()
-            theme_config = self.theme_manager.get_theme_config(theme_name)
-            audio_files = theme_config.get("audio", [])
+        print("test")
+        theme_name = self.theme_var.get()
+        print(theme_name)
+        theme_config = self.theme_manager.get_theme_config(theme_name)
+        print(theme_config)
+        audio_files = theme_config.get("audio", [])
             
-            if audio_files:
-                random_audio = random.choice(audio_files)
-                self.play_audio(random_audio)
-        else: 
-            print("yesssss")
-            pass
+        if audio_files:
+            random_audio = random.choice(audio_files)
+            self.play_audio(random_audio)
+
+        # if not self.vlm.check_laptop_screen():
+        #     print("nooooooooo")
+        #     theme_name = self.theme_var.get()
+        #     theme_config = self.theme_manager.get_theme_config(theme_name)
+        #     audio_files = theme_config.get("audio", [])
+            
+        #     if audio_files:
+        #         random_audio = random.choice(audio_files)
+        #         self.play_audio(random_audio)
+        # else: 
+        #     print("yesssss")
+        #     pass
 
     def play_audio(self, audio_path):
             """Plays the given audio file using pygame."""
