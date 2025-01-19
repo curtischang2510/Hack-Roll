@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 import time
 
-SERVER_URL = "http://172.20.10.14:5000/upload"  # Update with your server's IP and port
+SERVER_URL = "http://172.20.10.14:5000/process-image"  # Update with your server's IP and port
 
 class Screenchecker:
     def __init__(self):
