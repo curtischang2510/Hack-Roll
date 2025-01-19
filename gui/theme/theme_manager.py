@@ -2,7 +2,6 @@ import os
 import json
 from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk
-import pysound
 
 from gui.widgets.customise_popup import CustomPopup
 

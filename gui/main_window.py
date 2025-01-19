@@ -5,7 +5,7 @@ import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-from screenshot import VLM
+#from screenshot import VLM
 
 from gui.widgets.timer import TimerWidget
 
@@ -58,13 +58,13 @@ class MainWindow(tk.Tk):
         except Exception as e:
             print(f"Error initializing mixer: {e}")
         
-        self.vlm = VLM()
+        #self.vlm = VLM()
 
         self.check_periodically()
     
     def check_periodically(self): 
         print("periodically called")
-        self.perform_check()
+        #self.perform_check()
 
         self.after(5000, self.check_periodically)
 
@@ -239,7 +239,7 @@ class MainWindow(tk.Tk):
         if not theme_config:
             return
 
-        bg_image_path = theme_config["background"]
+        bg_image_path = theme_config["image"]
         self.original_img = Image.open(bg_image_path)
         self.resize_window()
 
