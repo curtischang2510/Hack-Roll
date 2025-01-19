@@ -1,25 +1,3 @@
-# import tkinter as tk
-# from tkinter import ttk
-
-# class TabWidget(ttk.Notebook):
-#     def __init__(self, parent, *args, **kwargs):
-#         super().__init__(parent, *args, **kwargs)
-
-#         self.pack(expand=1, fill="both")
-        
-#         self.tabs = {}
-#         self.bind("<<NotebookTabChanged>>", self.on_tab_change)
-    
-#     def add_tab(self, frame, title):
-#         frame.configure(borderwidth=0, relief="flat")
-#         self.add(frame, text=title)
-#         self.tabs[title] = frame
-
-#     def on_tab_change(self, event):
-#         selected_tab = event.widget.tab(event.widget.select(), "text")
-#         print(f"Switched to tab: {selected_tab}")  # For debugging
-
-
 import tkinter as tk
 
 class TabWidget(tk.Frame):
@@ -33,7 +11,7 @@ class TabWidget(tk.Frame):
         self.active_tab = None
 
         self.tab_buttons_frame = tk.Frame(self)
-        self.tab_buttons_frame.pack(side=tk.TOP, fill=tk.X)
+        self.tab_buttons_frame.pack(side=tk.TOP)
 
     def add_tab(self, frame, title):
         """Add a new tab to the widget."""
@@ -64,3 +42,8 @@ class TabWidget(tk.Frame):
         new_tab = self.tabs[title]
         new_tab.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.active_tab = title
+
+    def resize(self, width, height):
+        """Resize the TabWidget and its canvas."""
+        self.config(width=width, height=height)
+        self.canvas.config(width=width, height=height)
