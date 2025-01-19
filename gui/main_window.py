@@ -69,22 +69,26 @@ class MainWindow(tk.Tk):
         self.after(5000, self.check_periodically)
 
     def perform_check(self): 
-        theme_name = self.theme_var.get()
-        theme_config = self.theme_manager.get_theme_config(theme_name)
-        audio_files = theme_config.get("audio", [])
-        print("Original audio files:", audio_files)
+        if not self.vlm.check_laptop_screen():
+            theme_name = self.theme_var.get()
+            theme_config = self.theme_manager.get_theme_config(theme_name)
+            audio_files = theme_config.get("audio", [])
+            print("Original audio files:", audio_files)
 
-        # Filter out None values
-        valid_audio_files = [audio for audio in audio_files if audio is not None]
-        print("Valid audio files:", valid_audio_files)
+            # Filter out None values
+            valid_audio_files = [audio for audio in audio_files if audio is not None]
+            print("Valid audio files:", valid_audio_files)
 
-        if valid_audio_files:
-            # Randomly select and play an audio file
-            random_audio = random.choice(valid_audio_files)
-            print("Playing audio:", random_audio)
-            self.play_audio(random_audio)
-        else:
-            print("No valid audio files available.")
+            if valid_audio_files:
+                # Randomly select and play an audio file
+                random_audio = random.choice(valid_audio_files)
+                print("Playing audio:", random_audio)
+                self.play_audio(random_audio)
+            else:
+                print("No valid audio files available.")
+        else: 
+            print("yesssss")
+            pass
 
     def play_audio(self, audio_path):
             """Plays the given audio file using pygame."""
