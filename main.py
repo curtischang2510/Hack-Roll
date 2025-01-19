@@ -5,7 +5,8 @@ from open_cv import OpenCV
 def openCV_callback(user_looking, frame):
     """Callback to pass frames to the MainWindow instance."""
     if frame is not None:
-        app.set_latest_frame(frame)  # Update the frame in MainWindow
+        app.set_latest_frame(frame)
+        app.set_user_looking(user_looking) 
 
 if __name__ == "__main__":
     print("Starting application...")

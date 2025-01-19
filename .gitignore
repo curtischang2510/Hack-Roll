@@ -1,3 +1,6 @@
 venv
 env
 .venv
+assets/screenshots
+__pycache__
+gui/__pycache__/*.pyc
