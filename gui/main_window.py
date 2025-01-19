@@ -5,7 +5,7 @@ import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-from screenshot import VLM
+from client import Screenchecker 
 
 from gui.widgets.timer import TimerWidget
 
@@ -58,7 +58,7 @@ class MainWindow(tk.Tk):
         except Exception as e:
             print(f"Error initializing mixer: {e}")
         
-        self.vlm = VLM()
+        self.screen_checker = Screenchecker()
 
         self.check_periodically()
     
@@ -69,8 +69,8 @@ class MainWindow(tk.Tk):
         self.after(5000, self.check_periodically)
 
     def perform_check(self): 
-        if not self.vlm.check_laptop_screen():
-            print("nooooooooo")
+        if not self.screen_checker.isScreenOnWork() or not self.user_looking:
+            print("Screen on leisure")
             theme_name = self.theme_var.get()
             theme_config = self.theme_manager.get_theme_config(theme_name)
             audio_files = theme_config.get("audio", [])
@@ -79,7 +79,7 @@ class MainWindow(tk.Tk):
                 random_audio = random.choice(audio_files)
                 self.play_audio(random_audio)
         else: 
-            print("yesssss")
+            print("screen on work")
             pass
 
     def play_audio(self, audio_path):

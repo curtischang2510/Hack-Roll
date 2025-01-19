@@ -5,8 +5,6 @@ from datetime import datetime
 import os
 import time
 
-import screenshot
-
 SERVER_URL = "http://172.20.10.14:5000/process-image"  # Update with your server's IP and port
 
 class Screenchecker:
@@ -48,6 +46,7 @@ class Screenchecker:
     def isScreenOnWork(self): 
         screenshot_path = self.take_screenshot()
         assistant_response = self.send_screenshot(screenshot_path)
+        print("yes" in assistant_response.lower())
 
         return "yes" in assistant_response.lower() 
 
