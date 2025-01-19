@@ -5,7 +5,7 @@ import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-#from screenshot import VLM
+from screenshot import VLM
 
 from gui.widgets.timer import TimerWidget
 
