@@ -5,7 +5,7 @@ import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-#from screenshot import VLM
+from screenshot import VLM
 
 from gui.widgets.timer import TimerWidget
 
@@ -58,13 +58,13 @@ class MainWindow(tk.Tk):
         except Exception as e:
             print(f"Error initializing mixer: {e}")
         
-        #self.vlm = VLM()
+        self.vlm = VLM()
 
         self.check_periodically()
     
     def check_periodically(self): 
         print("periodically called")
-        #self.perform_check()
+        self.perform_check()
 
         self.after(5000, self.check_periodically)
 
@@ -233,23 +233,46 @@ class MainWindow(tk.Tk):
 
     def update_dropdown_menu(self):
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
+        print(f"Dropdown updated: {self.dropdown['values']}")
 
     def change_theme(self, theme_name):
         theme_config = self.theme_manager.get_theme_config(theme_name)
+        print(f"Applying theme: {theme_name}, Config: {theme_config}")
         if not theme_config:
             return
 
-        bg_image_path = theme_config["image"]
-        self.original_img = Image.open(bg_image_path)
-        self.resize_window()
+        # Remove any existing background image
+        self.canvas.delete("image")
+        self.original_img = None
 
-        if theme_config.get("extra_widget"):
-            self.extra_button.config(
-                text=theme_config.get("extra_button_text", "Extra"),
-                command=self.extra_button_action
-            )
+        # Apply background color
+        bg_color = theme_config.get("color")
+        if bg_color:
+            print(f"Existing theme color: {bg_color}")
+            self.configure(bg=bg_color)  
+            self.canvas.configure(bg=bg_color)  # Ensure the canvas matches the background
         else:
-            self.extra_button.place_forget()
+            print("No theme color found.")
+            self.configure(bg="#FFFFFF")  # Default background color (white)
+            self.canvas.configure(bg="#FFFFFF")
+
+        # Apply background image
+        bg_image_path = theme_config.get("image")
+        if bg_image_path:
+            try:
+                self.original_img = Image.open(bg_image_path)
+                self.resize_window()  # Resize the window with the new image
+            except Exception as e:
+                print(f"Error loading image: {e}")
+                self.original_img = None  # Clear any failed image load
+        else:
+            print("No theme image found.")
+
+        # If no color and no image, reset to default canvas
+        if not bg_color and not bg_image_path:
+            print("Reverting to default canvas.")
+            self.configure(bg="#FFFFFF")
+            self.canvas.configure(bg="#FFFFFF")
 
     def extra_button_action(self):
         print(f"Extra button clicked on theme: {self.theme_var.get()}")
