@@ -14,6 +14,14 @@ class ThemeManager:
         self.default_themes = {
             "Default": {
                 "color": "#000000",
+                "image": os.path.join(assets_dir, "steven-he-cropped.jpg"),
+                "audio": [os.path.join(assets_dir, "failure.mp3"), 
+                        os.path.join(assets_dir, "emotional-damage.mp3"), 
+                        os.path.join(assets_dir, "do-ur-hmwk.mp3")],
+                "extra_widget": False
+            },
+            "Meme": {
+                "color": "#000000",
                 "image": os.path.join(assets_dir, "meme.jpg"),
                 "audio": [os.path.join(assets_dir, "scream.mp3"), 
                         os.path.join(assets_dir, "amongus.mp3")],
@@ -25,14 +33,6 @@ class ThemeManager:
                 "audio": [os.path.join(assets_dir, "capybara.mp3")],
                 "extra_widget": False,
                 # "extra_button_text": "Help"
-            },
-            "Parent": {
-                "color": "#000000",
-                "image": os.path.join(assets_dir, "steven-he-cropped.jpg"),
-                "audio": [os.path.join(assets_dir, "failure.mp3"), 
-                        os.path.join(assets_dir, "emotional-damage.mp3"), 
-                        os.path.join(assets_dir, "do-ur-hmwk.mp3")],
-                "extra_widget": False
             }
         }
 
