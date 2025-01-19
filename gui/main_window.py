@@ -8,7 +8,6 @@ from screenshot import VLM
 from gui.widgets.timer import TimerWidget
 
 import random
-from playsound import playsound
 from pygame import mixer
 
 class MainWindow(tk.Tk):
