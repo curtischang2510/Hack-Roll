@@ -1,20 +1,29 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
-from screenshot import VLM
+#from screenshot import VLM
+
 from gui.widgets.timer import TimerWidget
 
 import random
 from pygame import mixer
 
 class MainWindow(tk.Tk):
-    def __init__(self):
+    def __init__(self, opencv):
         super().__init__()
         self.title("focus app!!")
         self.geometry("600x400")
+
+        # Values from OpenCV
+        self.opencv = opencv  # Store the OpenCV instance
+        self.latest_frame = None  # To store the latest frame
+        self.user_looking = False  # To store the user's looking status
+
+        self.face_tab_video_label = None  # To store the label in face_tab
 
         self.theme_manager = ThemeManager()
 
@@ -24,7 +33,6 @@ class MainWindow(tk.Tk):
         self.original_img = None
         self.img = None
 
-        # Will store info about each widget, including new "anchor_bottom_left" flag
         self.widget_references = []
 
         self.bind("<Configure>", self.resize_window)
@@ -32,7 +40,7 @@ class MainWindow(tk.Tk):
         self.theme_var = tk.StringVar(value="Default")
         self.dropdown = ttk.Combobox(self, textvariable=self.theme_var, state="readonly")
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
-        self.add(self.dropdown, x=10, y=10) 
+        self.add(self.dropdown, x=10, y=10)
 
         self.extra_button = tk.Button(self, text="Extra")
         self.extra_button_var = {"button": self.extra_button, "action": self.extra_button_action}
@@ -41,22 +49,22 @@ class MainWindow(tk.Tk):
         self.change_theme("Default")
 
         self.widgets_created = False
-
+        # Whenever the canvas resizes, attempt to recenter or reposition everything
+        self.canvas.bind("<Configure>", self.center_widgets)
+        
         try:
             mixer.init()
             print("Mixer initialized successfully.")
         except Exception as e:
             print(f"Error initializing mixer: {e}")
-
-        # Whenever the canvas resizes, attempt to recenter or reposition everything
-        self.canvas.bind("<Configure>", self.center_widgets)
-        self.vlm = VLM()
+        
+        #self.vlm = VLM()
 
         self.check_periodically()
     
     def check_periodically(self): 
         print("periodically called")
-        self.perform_check()
+        #self.perform_check()
 
         self.after(5000, self.check_periodically)
 
@@ -82,6 +90,59 @@ class MainWindow(tk.Tk):
             except Exception as e:
                 print(f"Error playing audio: {e}")
 
+    def set_latest_frame(self, frame):
+        """Store the latest frame for display."""
+        self.latest_frame = frame
+
+    def set_user_looking(self, user_looking):
+        self.user_looking = user_looking
+
+    def update_video_feed(self):
+        """Update the video feed in the face_tab."""
+        if self.latest_frame is not None:
+            # Convert frame to RGB format for Tkinter
+            frame = cv2.cvtColor(self.latest_frame, cv2.COLOR_BGR2RGB)
+            frame = ImageTk.PhotoImage(image=Image.fromarray(frame))
+            self.face_tab_video_label.configure(image=frame)
+            self.face_tab_video_label.image = frame  # Prevent garbage collection
+        else:
+            # Display placeholder text if no frame is available
+            self.face_tab_video_label.configure(text="Waiting for camera feed...")
+
+        # Schedule the next frame update
+        self.after(33, self.update_video_feed)
+
+    def create_widgets(self):
+        """Create widgets, including the video feed in face_tab."""
+        self.widgets_created = True
+
+        # Create and add the TabWidget
+        self.tab_widget = TabWidget(self)
+        self.add(self.tab_widget, center_x=True, center_y=True)
+
+        # Add tabs to the TabWidget
+        screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
+        face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
+
+        self.tab_widget.add_tab(screen_tab, "Screen")
+        self.tab_widget.add_tab(face_tab, "Face")
+
+        # Add placeholder text to screen_tab
+        screen_label = tk.Label(screen_tab, text="This should show the screen captured")
+        screen_label.pack(expand=True, fill=tk.BOTH)
+
+        # Add a label to face_tab for video feed
+        self.face_tab_video_label = tk.Label(face_tab, text="Waiting for camera feed...")
+        self.face_tab_video_label.pack(expand=True, fill=tk.BOTH)
+
+        # Add the TimerWidget, anchored at the bottom-left
+        self.timer_widget = TimerWidget(self)
+        self.add(self.timer_widget, anchor_bottom_left=True)
+
+        # Start updating the video feed
+        self.update_video_feed()
+
+    # Unchanged methods 
     def center_widgets(self, event=None):
         """Center or reposition widgets on the canvas after size changes."""
         canvas_width = self.canvas.winfo_width()
@@ -98,8 +159,8 @@ class MainWindow(tk.Tk):
 
             # If this widget is our TabWidget, resize it to fill space
             if widget == self.tab_widget:
-                tab_width = max(canvas_width - 130, 0)
-                tab_height = max(canvas_height - 130, 0)
+                tab_width = max(canvas_width - 120, 0)
+                tab_height = max(canvas_height - 120, 0)
                 widget.resize(tab_width, tab_height)
 
             # Handle normal center_x/center_y
@@ -154,87 +215,41 @@ class MainWindow(tk.Tk):
         if width > 0 and height > 0:
             resized_img = self.original_img.resize((width, height), Image.Resampling.LANCZOS)
             self.img = ImageTk.PhotoImage(resized_img)
-
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img, tag="image")
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img)
 
         if not hasattr(self, "widgets_created"):
             self.create_widgets()
 
-    def create_widgets(self):
-        self.widgets_created = True
-        self.tab_widget = TabWidget(self)
-        self.add(self.tab_widget, center_x=True, center_y=True)
-
-        screen_tab = tk.Frame(self.tab_widget.canvas, bg="lightblue")
-        face_tab = tk.Frame(self.tab_widget.canvas, bg="lightgreen")
-
-        self.tab_widget.add_tab(screen_tab, "Screen")
-        self.tab_widget.add_tab(face_tab, "Face")
-
-        screen_label = tk.Label(screen_tab, text="This should show the screen captured")
-        screen_label.pack(expand=True, fill=tk.BOTH)
-        face_label = tk.Label(face_tab, text="This should show the face captured")
-        face_label.pack(expand=True, fill=tk.BOTH)
-
-        # ---------------------------------------------------
-        # Create and add the TimerWidget, anchored bottom-left
-        # ---------------------------------------------------
-        self.timer_widget = TimerWidget(self)
-        # Instead of a fixed y=350, just anchor it so it will stay 
-        # at bottom-left regardless of window size
-        self.add(self.timer_widget, anchor_bottom_left=True)
-        # ---------------------------------------------------
-
     def on_dropdown_select(self, event=None):
         selected_theme = self.theme_var.get()
         if selected_theme == "Add Custom Theme":
-            self.theme_manager.create_custom_theme(self)
-            self.update_dropdown_menu()
+            new_theme = self.theme_manager.create_custom_theme()
+            if new_theme:
+                self.update_dropdown_menu()
+                self.theme_var.set(new_theme)
+                self.change_theme(new_theme)
         else:
             self.change_theme(selected_theme)
 
     def update_dropdown_menu(self):
         self.dropdown["values"] = self.theme_manager.get_all_theme_names()
-        print(f"Dropdown updated: {self.dropdown['values']}")
 
     def change_theme(self, theme_name):
         theme_config = self.theme_manager.get_theme_config(theme_name)
-        print(f"Applying theme: {theme_name}, Config: {theme_config}")
         if not theme_config:
             return
 
-        # Remove any existing background image
-        self.canvas.delete("image")
-        self.original_img = None
+        bg_image_path = theme_config["image"]
+        self.original_img = Image.open(bg_image_path)
+        self.resize_window()
 
-        # Apply background color
-        bg_color = theme_config.get("color")
-        if bg_color:
-            print(f"Existing theme color: {bg_color}")
-            self.configure(bg=bg_color)  
-            self.canvas.configure(bg=bg_color)  # Ensure the canvas matches the background
+        if theme_config.get("extra_widget"):
+            self.extra_button.config(
+                text=theme_config.get("extra_button_text", "Extra"),
+                command=self.extra_button_action
+            )
         else:
-            print("No theme color found.")
-            self.configure(bg="#FFFFFF")  # Default background color (white)
-            self.canvas.configure(bg="#FFFFFF")
-
-        # Apply background image
-        bg_image_path = theme_config.get("image")
-        if bg_image_path:
-            try:
-                self.original_img = Image.open(bg_image_path)
-                self.resize_window()  # Resize the window with the new image
-            except Exception as e:
-                print(f"Error loading image: {e}")
-                self.original_img = None  # Clear any failed image load
-        else:
-            print("No theme image found.")
-
-        # If no color and no image, reset to default canvas
-        if not bg_color and not bg_image_path:
-            print("Reverting to default canvas.")
-            self.configure(bg="#FFFFFF")
-            self.canvas.configure(bg="#FFFFFF")
+            self.extra_button.place_forget()
 
     def extra_button_action(self):
         print(f"Extra button clicked on theme: {self.theme_var.get()}")

@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, colorchooser
 from PIL import Image, ImageTk
-from playsound import playsound
 import threading
 
 
