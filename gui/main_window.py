@@ -5,8 +5,12 @@ import cv2
 
 from gui.theme.theme_manager import ThemeManager
 from gui.widgets.tab import TabWidget
+from screenshot import VLM
+
 from gui.widgets.timer import TimerWidget
 
+import random
+from pygame import mixer
 
 class MainWindow(tk.Tk):
     def __init__(self, opencv):
@@ -45,8 +49,46 @@ class MainWindow(tk.Tk):
         self.change_theme("Default")
 
         self.widgets_created = False
-
+        # Whenever the canvas resizes, attempt to recenter or reposition everything
         self.canvas.bind("<Configure>", self.center_widgets)
+        
+        try:
+            mixer.init()
+            print("Mixer initialized successfully.")
+        except Exception as e:
+            print(f"Error initializing mixer: {e}")
+        
+        self.vlm = VLM()
+
+        self.check_periodically()
+    
+    def check_periodically(self): 
+        print("periodically called")
+        self.perform_check()
+
+        self.after(5000, self.check_periodically)
+
+    def perform_check(self): 
+        if not self.vlm.check_laptop_screen():
+            print("nooooooooo")
+            theme_name = self.theme_var.get()
+            theme_config = self.theme_manager.get_theme_config(theme_name)
+            audio_files = theme_config.get("audio", [])
+            
+            if audio_files:
+                random_audio = random.choice(audio_files)
+                self.play_audio(random_audio)
+        else: 
+            print("yesssss")
+            pass
+
+    def play_audio(self, audio_path):
+            """Plays the given audio file using pygame."""
+            try:
+                mixer.music.load(audio_path)
+                mixer.music.play()
+            except Exception as e:
+                print(f"Error playing audio: {e}")
 
     def set_latest_frame(self, frame):
         """Store the latest frame for display."""
